@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Daily Quote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IM+Fell+English:ital@0;1&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --parchment: #f5efe0;
+    --aged: #e8dcc8;
+    --rust: #b5440e;
+    --olive: #4a5240;
+    --fade: #9a8f7a;
+    --gold: #c9962a;
+    --shadow: rgba(26,18,8,0.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--aged);
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 28px,
+        rgba(26,18,8,0.04) 28px,
+        rgba(26,18,8,0.04) 29px
+      );
+    color: var(--ink);
+    font-family: 'Libre Baskerville', Georgia, serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── MASTHEAD ── */
+  .masthead {
+    width: 100%;
+    max-width: 860px;
+    padding: 28px 24px 0;
+    opacity: 0;
+    animation: fadeDown 0.7s ease forwards;
+  }
+
+  .masthead-rule { height: 3px; background: var(--ink); margin-bottom: 4px; }
+  .masthead-rule-thin { height: 1px; background: var(--ink); margin-bottom: 16px; }
+
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .edition-label {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fade);
+  }
+
+  .masthead-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 8vw, 5.2rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-align: center;
+    color: var(--ink);
+    flex: 1;
+    text-shadow: 2px 2px 0 rgba(26,18,8,0.08);
+  }
+
+  .date-line {
+    font-family: 'IM Fell English', serif;
+    font-size: 0.75rem;
+    color: var(--fade);
+    letter-spacing: 0.05em;
+    text-align: right;
+    min-width: 120px;
+  }
+
+  .masthead-tagline {
+    text-align: center;
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.8rem;
+    color: var(--fade);
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+
+  /* ── MAIN PAPER ── */
+  .paper {
+    width: 100%;
+    max-width: 860px;
+    padding: 0 24px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ── QUOTE STAGE ── */
+  .quote-stage {
+    background: var(--parchment);
+    border: 1px solid rgba(26,18,8,0.2);
+    padding: 44px 52px 40px;
+    position: relative;
+    box-shadow: 4px 4px 0 rgba(26,18,8,0.12), 8px 8px 0 rgba(26,18,8,0.06);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.3s ease forwards;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .quote-stage::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(26,18,8,0.08);
+    pointer-events: none;
+  }
+
+  .ornament {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--rust);
+    margin-bottom: 20px;
+    opacity: 0.7;
+    letter-spacing: 0.3em;
+  }
+
+  .quote-mark {
+    font-family: 'Playfair Display', serif;
+    font-size: 7rem;
+    line-height: 0;
+    color: var(--rust);
+    opacity: 0.18;
+    position: absolute;
+    top: 52px;
+    left: 42px;
+    user-select: none;
+  }
+
+  .quote-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.25rem, 3.2vw, 1.7rem);
+    font-style: italic;
+    line-height: 1.65;
+    color: var(--ink);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    padding: 0 16px;
+    transition: opacity 0.3s ease;
+  }
+
+  .quote-text.fading { opacity: 0; transform: translateY(6px); }
+  .quote-text.visible { opacity: 1; transform: translateY(0); transition: opacity 0.4s ease, transform 0.4s ease; }
+
+  .quote-author {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--rust);
+    text-align: center;
+    margin-top: 24px;
+    position: relative;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  .quote-author.fading { opacity: 0; }
+  .quote-author.visible { opacity: 1; transition: opacity 0.4s 0.1s ease; }
+
+  .quote-author::before,
+  .quote-author::after {
+    content: '—';
+    margin: 0 8px;
+    opacity: 0.5;
+  }
+
+  .loading-state {
+    text-align: center;
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: var(--fade);
+    font-size: 1.1rem;
+    padding: 20px 0;
+  }
+
+  .loading-dots span {
+    display: inline-block;
+    animation: blink 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  /* ── ACTION ROW ── */
+  .action-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 0;
+    border-top: 1px solid rgba(26,18,8,0.15);
+    margin-top: 0;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.5s ease forwards;
+  }
+
+  .like-count-badge {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fade);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .like-count-badge strong {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--rust);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .btn-group { display: flex; gap: 12px; }
+
+  button {
+    font-family: 'Libre Baskerville', serif;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s ease;
+  }
+
+  .btn-new {
+    background: var(--ink);
+    color: var(--parchment);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 10px 22px;
+    position: relative;
+    box-shadow: 3px 3px 0 var(--rust);
+  }
+
+  .btn-new:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--rust);
+  }
+
+  .btn-new:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--rust);
+  }
+
+  .btn-new:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-like {
+    background: transparent;
+    border: 1.5px solid var(--rust);
+    color: var(--rust);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-like.liked {
+    background: var(--rust);
+    color: var(--parchment);
+  }
+
+  .btn-like:hover:not(:disabled) {
+    background: var(--rust);
+    color: var(--parchment);
+  }
+
+  .btn-like:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .heart-icon {
+    display: inline-block;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .btn-like.liked .heart-icon,
+  .btn-like:hover .heart-icon {
+    transform: scale(1.3);
+  }
+
+  /* ── DIVIDER ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 0 20px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.7s ease forwards;
+  }
+
+  .section-divider .line { flex: 1; height: 1px; background: rgba(26,18,8,0.2); }
+  .section-divider .label {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fade);
+    white-space: nowrap;
+  }
+
+  /* ── LIKED SECTION ── */
+  .liked-section {
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s ease forwards;
+  }
+
+  .liked-empty {
+    text-align: center;
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: var(--fade);
+    font-size: 0.9rem;
+    padding: 20px;
+    border: 1px dashed rgba(26,18,8,0.2);
+  }
+
+  .liked-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .liked-card {
+    background: var(--parchment);
+    border: 1px solid rgba(26,18,8,0.15);
+    padding: 20px 22px 16px;
+    position: relative;
+    box-shadow: 2px 2px 0 rgba(26,18,8,0.08);
+    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    overflow: hidden;
+  }
+
+  .liked-card::after {
+    content: '♥';
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 0.65rem;
+    color: var(--rust);
+    opacity: 0.5;
+  }
+
+  .liked-card-quote {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--ink);
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .liked-card-author {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+
+  .liked-card-author::before { content: '— '; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 16px;
+    font-family: 'IM Fell English', serif;
+    font-size: 0.7rem;
+    color: var(--fade);
+    opacity: 0;
+    animation: fadeUp 0.8s 1s ease forwards;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.2; }
+    50%       { opacity: 1; }
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.92) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  @keyframes heartbeat {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.4); }
+    60%  { transform: scale(0.9); }
+    100% { transform: scale(1); }
+  }
+
+  .heartbeat { animation: heartbeat 0.4s ease; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .quote-stage { padding: 32px 28px 28px; }
+    .masthead-title { font-size: 2.6rem; }
+    .action-row { flex-direction: column-reverse; gap: 16px; align-items: stretch; }
+    .btn-group { justify-content: stretch; }
+    .btn-group button { flex: 1; justify-content: center; }
+    .like-count-badge { justify-content: center; }
+    .liked-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-top">
+    <span class="edition-label">Vol. I — Est. Today</span>
+    <h1 class="masthead-title">The Daily Quote</h1>
+    <div class="date-line" id="dateLine"></div>
+  </div>
+  <p class="masthead-tagline">Words worth carrying through the day</p>
+  <div class="masthead-rule"></div>
+  <div class="masthead-rule-thin"></div>
+</header>
+
+<main class="paper">
+
+  <div class="quote-stage" id="quoteStage">
+    <span class="quote-mark">"</span>
+    <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+    <div id="quoteContent">
+      <p class="loading-state">
+        Consulting the archives
+        <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+      </p>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <div class="like-count-badge">
+      <strong id="likeCountDisplay">0</strong>
+      quotes saved to your collection
+    </div>
+    <div class="btn-group">
+      <button class="btn-like" id="btnLike" disabled>
+        <span class="heart-icon" id="heartIcon">♡</span>
+        <span id="likeLabel">Like</span>
+      </button>
+      <button class="btn-new" id="btnNew" disabled>New Quote</button>
+    </div>
+  </div>
+
+  <div class="section-divider">
+    <div class="line"></div>
+    <span class="label">Your Collection</span>
+    <div class="line"></div>
+  </div>
+
+  <section class="liked-section" id="likedSection">
+    <p class="liked-empty" id="likedEmpty">
+      Nothing collected yet — like a quote to save it here.
+    </p>
+    <div class="liked-grid" id="likedGrid"></div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  ✦ &nbsp; All quotes lovingly fetched from quotable.io &nbsp; ✦
+</footer>
+
+<script>
+  // ── State ──
+  const STORAGE_KEY = 'daily-quote-liked-v1';
+  let currentQuote = null;
+  let loading = false;
+  let likedQuotes = loadLiked();
+
+  // ── DOM ──
+  const $quoteContent    = document.getElementById('quoteContent');
+  const $btnNew          = document.getElementById('btnNew');
+  const $btnLike         = document.getElementById('btnLike');
+  const $heartIcon       = document.getElementById('heartIcon');
+  const $likeLabel       = document.getElementById('likeLabel');
+  const $likeCountDisplay = document.getElementById('likeCountDisplay');
+  const $likedGrid       = document.getElementById('likedGrid');
+  const $likedEmpty      = document.getElementById('likedEmpty');
+  const $dateLine        = document.getElementById('dateLine');
+
+  // ── Init ──
+  $dateLine.textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  fetchQuote();
+  renderLikedGrid();
+  updateLikeCount();
+
+  // ── Fetch ──
+  async function fetchQuote() {
+    loading = true;
+    setLoadingUI();
+
+    const CORS_PROXIES = [
+      url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+      url => url
+    ];
+
+    const targetUrl = 'https://api.quotable.io/random';
+    let quote = null;
+
+    for (const proxify of CORS_PROXIES) {
+      try {
+        const res = await fetch(proxify(targetUrl), { signal: AbortSignal.timeout(7000) });
+        if (!res.ok) continue;
+        const data = await res.json();
+        // allorigins wraps in { contents: "..." }
+        const parsed = data.contents ? JSON.parse(data.contents) : data;
+        if (parsed && parsed.content) {
+          quote = { id: parsed._id || Date.now().toString(), content: parsed.content, author: parsed.author };
+          break;
+        }
+      } catch { continue; }
+    }
+
+    if (!quote) {
+      // Fallback quotes if API is unavailable
+      const fallbacks = [
+        { id: 'f1', content: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' },
+        { id: 'f2', content: 'In the middle of every difficulty lies opportunity.', author: 'Albert Einstein' },
+        { id: 'f3', content: 'It does not matter how slowly you go as long as you do not stop.', author: 'Confucius' },
+        { id: 'f4', content: 'Life is what happens when you\'re busy making other plans.', author: 'John Lennon' },
+        { id: 'f5', content: 'The future belongs to those who believe in the beauty of their dreams.', author: 'Eleanor Roosevelt' },
+      ];
+      quote = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    }
+
+    currentQuote = quote;
+    loading = false;
+    renderQuote();
+  }
+
+  // ── Render quote ──
+  function setLoadingUI() {
+    $btnNew.disabled = true;
+    $btnLike.disabled = true;
+    $quoteContent.innerHTML = `
+      <p class="loading-state">
+        Consulting the archives
+        <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+      </p>`;
+  }
+
+  function renderQuote() {
+    const isLiked = likedQuotes.some(q => q.id === currentQuote.id);
+
+    $quoteContent.innerHTML = `
+      <p class="quote-text visible">${currentQuote.content}</p>
+      <p class="quote-author visible">${currentQuote.author}</p>`;
+
+    updateLikeButton(isLiked);
+    $btnNew.disabled = false;
+    $btnLike.disabled = false;
+  }
+
+  // ── Like toggle ──
+  function toggleLike() {
+    if (!currentQuote) return;
+    const idx = likedQuotes.findIndex(q => q.id === currentQuote.id);
+    const nowLiked = idx === -1;
+
+    if (nowLiked) {
+      likedQuotes = [currentQuote, ...likedQuotes];
+    } else {
+      likedQuotes = likedQuotes.filter(q => q.id !== currentQuote.id);
+    }
+
+    saveLiked();
+    updateLikeButton(nowLiked);
+    updateLikeCount();
+    renderLikedGrid();
+
+    // heartbeat animation
+    $heartIcon.classList.remove('heartbeat');
+    void $heartIcon.offsetWidth; // reflow
+    $heartIcon.classList.add('heartbeat');
+    setTimeout(() => $heartIcon.classList.remove('heartbeat'), 400);
+  }
+
+  function updateLikeButton(isLiked) {
+    $heartIcon.textContent = isLiked ? '♥' : '♡';
+    $likeLabel.textContent = isLiked ? 'Liked' : 'Like';
+    $btnLike.classList.toggle('liked', isLiked);
+  }
+
+  function updateLikeCount() {
+    $likeCountDisplay.textContent = likedQuotes.length;
+  }
+
+  // ── Liked grid ──
+  function renderLikedGrid() {
+    $likedEmpty.style.display = likedQuotes.length === 0 ? '' : 'none';
+    $likedGrid.innerHTML = '';
+    likedQuotes.forEach((q, i) => {
+      const card = document.createElement('div');
+      card.className = 'liked-card';
+      card.style.animationDelay = `${i * 0.04}s`;
+      card.innerHTML = `
+        <p class="liked-card-quote">${q.content}</p>
+        <p class="liked-card-author">${q.author}</p>`;
+      $likedGrid.appendChild(card);
+    });
+  }
+
+  // ── LocalStorage ──
+  function loadLiked() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveLiked() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(likedQuotes));
+  }
+
+  // ── Events ──
+  $btnNew.addEventListener('click', fetchQuote);
+  $btnLike.addEventListener('click', toggleLike);
+</script>
+</body>
+</html>
